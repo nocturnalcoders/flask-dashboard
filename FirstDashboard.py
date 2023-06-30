@@ -15,6 +15,12 @@ def index():
     bar = create_plot(feature)
     return render_template('index.html', plot=bar)
 
+@app.route('/naivebayes')
+def naivebayes():
+    df = pd.read_excel("static/assets/tweets_data_clean_polarity.xlsx")
+    html_table = df.to_html()
+    return render_template('home.html', html_table=html_table)
+
 def create_plot(feature):
     if feature == 'Bar':
         N = 40
@@ -55,5 +61,7 @@ def change_features():
 
     return graphJSON
 
+
+
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True, port=9000)

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>My First Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .chart {
+            text-align: center;
+        }
+
+        .chart h2 {
+            margin-bottom: 10px;
+        }
+
+        .chart img {
+            margin: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="chart">
+            <h2>Preprocessed result report</h2>
+            <div id="table-container">
+                {{ html_table|safe }}
+            </div>
+            <h2>Sentiment Analysis</h2>
+            <img src="{{ url_for('static', filename='assets/sentiment_analysis.png') }}" alt="Sentiment Analysis">
+            <h2>Word Cloud</h2>
+            <img src="{{ url_for('static', filename='assets/wordcloud.png') }}" alt="Word Cloud">
+            <h2>classification result report</h2>
+            <img src="{{ url_for('static', filename='assets/classification_result_report.png') }}"
+                alt="classification result report">
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+        crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ url_for('static', filename='js/xlsx-populate.min.js') }}"></script>
+    <script>
+        $(document).ready(function () {
+            $.get('static/assets/tweets_data_clean_polarity.xlsx', function (data) {
+                var workbook = XlsxPopulate.fromDataAsync(data);
+
+                workbook.then(function (workbook) {
+                    var sheet = workbook.sheet(0);
+                    var jsonData = sheet.usedRange().value();
+                    var headers = jsonData[0];
+                    var rows = jsonData.slice(1);
+
+                    var table = '<table class="table table-striped">';
+                    table += '<thead><tr>';
+                    headers.forEach(function (header) {
+                        table += '<th>' + header + '</th>';
+                    });
+                    table += '</tr></thead>';
+
+                    table += '<tbody>';
+                    rows.forEach(function (row) {
+                        table += '<tr>';
+                        row.forEach(function (cell) {
+                            // Convert cell value to string
+                            cell = String(cell);
+
+                            // Check if the cell value starts with "&#x" and ends with ";" to identify Unicode representation
+                            if (cell.startsWith("&#x") && cell.endsWith(";")) {
+                                // Replace the cell value with the corresponding emoji
+                                cell = cell.replace(/&#x([^;]+);/g, function (match, p1) {
+                                    return String.fromCodePoint(parseInt(p1, 16));
+                                });
+                            }
+                            table += '<td>' + cell + '</td>';
+                        });
+                        table += '</tr>';
+                    });
+                    table += '</tbody>';
+
+                    table += '</table>';
+
+                    $('#table-container').html(table);
+                });
+            }, 'arraybuffer');
+        });
+    </script>
+
+
+
+</body>
+
+</html>
